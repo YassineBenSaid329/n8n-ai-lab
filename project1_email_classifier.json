@@ -1,0 +1,277 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-classifier",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "15301678-3a37-4984-bcea-73eb7ed9c747",
+      "name": "Webhook",
+      "webhookId": "c58bc65f-6019-4dea-b14d-75cd52d83df9"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.subject }}",
+                    "rightValue": "Order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "7bcbe213-6b9c-455b-a2ce-5b0a759f5ee7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5f95a198-eeb7-41b0-9677-86dfc42bae1d",
+                    "leftValue": "={{ $json.body.subject }}",
+                    "rightValue": "Refund",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "c811bad6-6035-4b32-99e3-165ed8cb447e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analyze the sentiment of this customer email: {{ $json.body.body }}. Respond with only one word: HAPPY, NEUTRAL, or ANGRY."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -208
+      ],
+      "id": "f5ae5f4a-5cf3-4a27-ae8d-ba1c8de2f748",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "fWT9HB206r0cTT1I",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "150a0ddf-9803-46f9-82fa-7af7abd5aa39",
+              "leftValue": "={{ $json.content.parts[0].text }}",
+              "rightValue": "ANGRY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        960,
+        -208
+      ],
+      "id": "dafbb5ce-3c44-4c14-9d24-c0fe8d574d43",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e34c930e-3683-489b-94b7-560ee1de1b2c",
+              "name": "status",
+              "value": "HIGH PRIORITY: Human intervention required.",
+              "type": "string"
+            },
+            {
+              "id": "1b5a9143-a630-4631-8ced-96065f478f63",
+              "name": "client is :",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        -304
+      ],
+      "id": "37c1c197-a807-4555-8175-d3e1b8ffed4b",
+      "name": "Escalated to Human"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb4de49a-f70a-4f47-a8f1-93ccc3d97b7b",
+              "name": "status",
+              "value": "Routine inquiry: Logged in DB.",
+              "type": "string"
+            },
+            {
+              "id": "c0cfc0d6-6ce7-4e76-b36c-be11e05c611e",
+              "name": "client is",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        -96
+      ],
+      "id": "890b906d-f84d-48df-a4d7-bed47d8fa0fa",
+      "name": "Auto-Processed"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Escalated to Human",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auto-Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b2992a9c-b98d-4750-bbd6-e42f4a6390d5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e22caf877d832342e534b803f3689036e5eb6267c5e92614cc32fae5bfa509dc"
+  },
+  "id": "oe1XCsrnnhinyPsT",
+  "tags": []
+}
