@@ -1,0 +1,8 @@
+# Ignore the n8n data directory which contains the database and credentials
+n8n_data/
+
+# Ignore environment files
+.env
+
+# Ignore system files
+.DS_Store
