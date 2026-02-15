@@ -6,3 +6,4 @@ n8n_data/
 
 # Ignore system files
 .DS_Store
+postgres_data/

@@ -18,3 +18,15 @@ services:
     volumes:
       # This links our local folder to the container's data folder
       - ./n8n_data:/home/node/.n8n
+  postgres:
+    image: postgres:16-alpine
+    container_name: n8n-lab-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=n8n_password
+      - POSTGRES_DB=n8n_chat_history
+    ports:
+      - "5433:5432" # Mapping to 5433 to avoid conflict with other DB
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
